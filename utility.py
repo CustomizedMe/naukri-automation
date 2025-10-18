@@ -56,6 +56,13 @@ def setup_driver() -> WebDriver:
     temp_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f"--user-data-dir={temp_dir}")
     
+    # Additional options for cloud/headless environments
+    chrome_options.add_argument("--headless")  # Run in headless mode for cloud
+    chrome_options.add_argument("--no-sandbox")  # Required for cloud environments
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+    chrome_options.add_argument("--disable-gpu")  # Disable GPU in headless mode
+    chrome_options.add_argument("--remote-debugging-port=9222")  # Enable remote debugging
+    
     # Try to use existing Chrome profile if possible
     try:
         print("🔍 Attempting to start Chrome with profile...")
@@ -70,6 +77,11 @@ def setup_driver() -> WebDriver:
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("--disable-popup-blocking")
         chrome_options.add_argument("--disable-notifications")
+        chrome_options.add_argument("--headless")  # Run in headless mode for cloud
+        chrome_options.add_argument("--no-sandbox")  # Required for cloud environments
+        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+        chrome_options.add_argument("--disable-gpu")  # Disable GPU in headless mode
+        chrome_options.add_argument("--remote-debugging-port=9222")  # Enable remote debugging
         
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
