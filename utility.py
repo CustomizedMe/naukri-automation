@@ -686,8 +686,40 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
         login_button.click()
         print("✅ Clicked login button")
         
-        # Wait for login to process
-        time.sleep(8)
+        # Wait for login to process with dynamic waiting
+        print("⏱️ Waiting for login to complete...")
+        max_wait_time = 30  # Maximum wait time in seconds
+        wait_interval = 2   # Check every 2 seconds
+        
+        for wait_attempt in range(max_wait_time // wait_interval):
+            time.sleep(wait_interval)
+            
+            # Check if we've been redirected away from login page
+            current_url = driver.current_url
+            page_title = driver.title
+            
+            # Look for success indicators
+            if ("login" not in current_url.lower() and 
+                ("mynaukri" in current_url.lower() or 
+                 "profile" in current_url.lower() or 
+                 "dashboard" in current_url.lower() or
+                 "homepage" in current_url.lower())):
+                print(f"✅ Login completed successfully after {wait_attempt * wait_interval} seconds")
+                print(f"📍 Redirected to: {current_url}")
+                return  # Exit early if login is successful
+            
+            # Check for error messages
+            try:
+                error_elements = driver.find_elements(By.XPATH, "//div[contains(@class, 'error') or contains(text(), 'Invalid') or contains(text(), 'Wrong')]")
+                if error_elements and error_elements[0].text.strip():
+                    print(f"❌ Login error detected: {error_elements[0].text}")
+                    raise Exception(f"Login failed: {error_elements[0].text}")
+            except:
+                pass
+            
+            print(f"⏱️ Still waiting for login... ({wait_attempt * wait_interval}s elapsed)")
+        
+        print("⚠️ Login timeout - proceeding with validation...")
         
         # Check for login success/failure with comprehensive validation
         print("🔍 Validating login status...")
@@ -718,6 +750,49 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
                 print("🎯 Login appears successful - user elements detected")
         except:
             pass
+        
+        # Check session cookies and validate authentication
+        try:
+            print("🍪 Checking session cookies...")
+            cookies = driver.get_cookies()
+            session_cookies = [cookie for cookie in cookies if 'session' in cookie.get('name', '').lower() or 'auth' in cookie.get('name', '').lower() or 'login' in cookie.get('name', '').lower()]
+            
+            if session_cookies:
+                print(f"✅ Found {len(session_cookies)} session cookies")
+                for cookie in session_cookies:
+                    print(f"   - {cookie['name']}: {cookie['value'][:20]}...")
+            else:
+                print("⚠️ No session cookies found - authentication may not be complete")
+                
+            # Check if we have naukri-specific cookies
+            naukri_cookies = [cookie for cookie in cookies if 'naukri' in cookie.get('name', '').lower() or 'mnj' in cookie.get('name', '').lower()]
+            if naukri_cookies:
+                print(f"✅ Found {len(naukri_cookies)} Naukri-specific cookies")
+            else:
+                print("⚠️ No Naukri-specific cookies found")
+                
+        except Exception as cookie_error:
+            print(f"⚠️ Could not check cookies: {cookie_error}")
+        
+        # Try to access a simple authenticated page first
+        try:
+            print("🔍 Testing session with simple authenticated request...")
+            driver.get("https://www.naukri.com/mnjuser/homepage")
+            time.sleep(3)
+            
+            test_url = driver.current_url
+            test_title = driver.title
+            print(f"📍 Test URL: {test_url}")
+            print(f"📄 Test Title: {test_title}")
+            
+            if "login" not in test_url.lower() and "mynaukri" in test_title.lower():
+                print("✅ Session is valid - can access authenticated pages")
+                return  # Exit early if session is working
+            else:
+                print("⚠️ Session test failed - still redirected to login")
+                
+        except Exception as test_error:
+            print(f"⚠️ Session test failed: {test_error}")
         
         # Check for error messages first
         error_found = False
