@@ -53,7 +53,7 @@ def setup_driver() -> WebDriver:
         chrome_options.add_argument("--disable-default-apps")
         chrome_options.add_argument("--disable-extensions")
         
-        # Stealth Chrome options to avoid detection
+        # Advanced stealth Chrome options to avoid detection
         chrome_options.add_argument("--headless=new")  # Use new headless mode
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
@@ -69,10 +69,87 @@ def setup_driver() -> WebDriver:
         chrome_options.add_argument("--disable-background-timer-throttling")
         chrome_options.add_argument("--disable-backgrounding-occluded-windows")
         chrome_options.add_argument("--disable-renderer-backgrounding")
-        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36")
-        chrome_options.add_argument("--accept-language=en-US,en;q=0.9")
+        
+        # Enhanced anti-detection measures
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--disable-infobars")
+        chrome_options.add_argument("--disable-extensions-file-access-check")
+        chrome_options.add_argument("--disable-extensions-http-throttling")
+        chrome_options.add_argument("--disable-extensions-except")
+        chrome_options.add_argument("--disable-component-extensions-with-background-pages")
+        chrome_options.add_argument("--disable-default-apps")
+        chrome_options.add_argument("--disable-sync")
+        chrome_options.add_argument("--disable-translate")
+        chrome_options.add_argument("--hide-scrollbars")
+        chrome_options.add_argument("--mute-audio")
+        chrome_options.add_argument("--no-first-run")
+        chrome_options.add_argument("--disable-logging")
+        chrome_options.add_argument("--disable-permissions-api")
+        chrome_options.add_argument("--disable-presentation-api")
+        chrome_options.add_argument("--disable-print-preview")
+        chrome_options.add_argument("--disable-speech-api")
+        chrome_options.add_argument("--disable-file-system")
+        chrome_options.add_argument("--disable-client-side-phishing-detection")
+        chrome_options.add_argument("--disable-component-update")
+        chrome_options.add_argument("--disable-domain-reliability")
+        chrome_options.add_argument("--disable-features=TranslateUI,BlinkGenPropertyTrees")
+        chrome_options.add_argument("--disable-ipc-flooding-protection")
+        chrome_options.add_argument("--disable-renderer-backgrounding")
+        chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+        chrome_options.add_argument("--disable-background-timer-throttling")
+        chrome_options.add_argument("--disable-background-networking")
+        chrome_options.add_argument("--disable-breakpad")
+        chrome_options.add_argument("--disable-client-side-phishing-detection")
+        chrome_options.add_argument("--disable-component-extensions-with-background-pages")
+        chrome_options.add_argument("--disable-default-apps")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-features=TranslateUI")
+        chrome_options.add_argument("--disable-hang-monitor")
+        chrome_options.add_argument("--disable-ipc-flooding-protection")
+        chrome_options.add_argument("--disable-popup-blocking")
+        chrome_options.add_argument("--disable-prompt-on-repost")
+        chrome_options.add_argument("--disable-renderer-backgrounding")
+        chrome_options.add_argument("--disable-sync")
+        chrome_options.add_argument("--disable-translate")
+        chrome_options.add_argument("--disable-windows10-custom-titlebar")
+        chrome_options.add_argument("--metrics-recording-only")
+        chrome_options.add_argument("--no-first-run")
+        chrome_options.add_argument("--safebrowsing-disable-auto-update")
+        chrome_options.add_argument("--enable-automation")
+        chrome_options.add_argument("--password-store=basic")
+        chrome_options.add_argument("--use-mock-keychain")
+        
+        # Randomize user agent from a pool of real browsers
+        import random
+        user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0"
+        ]
+        selected_user_agent = random.choice(user_agents)
+        chrome_options.add_argument(f"--user-agent={selected_user_agent}")
+        
+        # Randomize language and locale
+        languages = ["en-US,en;q=0.9", "en-GB,en;q=0.9", "en-CA,en;q=0.9", "en-AU,en;q=0.9"]
+        selected_language = random.choice(languages)
+        chrome_options.add_argument(f"--accept-language={selected_language}")
+        
+        # Additional headers
         chrome_options.add_argument("--accept-encoding=gzip, deflate, br")
-        chrome_options.add_argument("--accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+        chrome_options.add_argument("--accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+        chrome_options.add_argument("--sec-ch-ua=\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
+        chrome_options.add_argument("--sec-ch-ua-mobile=?0")
+        chrome_options.add_argument("--sec-ch-ua-platform=\"Windows\"")
+        chrome_options.add_argument("--sec-fetch-dest=document")
+        chrome_options.add_argument("--sec-fetch-mode=navigate")
+        chrome_options.add_argument("--sec-fetch-site=none")
+        chrome_options.add_argument("--sec-fetch-user=?1")
+        chrome_options.add_argument("--upgrade-insecure-requests=1")
         
         print("🌐 Using cloud-optimized Chrome configuration")
         
@@ -119,21 +196,147 @@ def setup_driver() -> WebDriver:
         if not driver:
             raise Exception("Failed to create Chrome driver instance")
         
-        # Execute stealth scripts to avoid detection
+        # Execute advanced stealth scripts to avoid detection
         try:
-            # Remove webdriver property
-            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            print("🕵️ Applying advanced stealth measures...")
             
-            # Override the plugins property
-            driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
+            # Comprehensive stealth script
+            stealth_script = """
+            // Remove webdriver property
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
             
-            # Override the languages property
-            driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})")
+            // Override automation indicators
+            Object.defineProperty(navigator, 'webdriver', {get: () => false});
+            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+            Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
+            Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})});
             
-            # Override the permissions property
-            driver.execute_script("Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})})")
+            // Override Chrome runtime
+            if (window.chrome && window.chrome.runtime) {
+                Object.defineProperty(window.chrome.runtime, 'onConnect', {get: () => undefined});
+                Object.defineProperty(window.chrome.runtime, 'onMessage', {get: () => undefined});
+            }
             
-            print("✅ Stealth measures applied successfully")
+            // Override automation flags
+            Object.defineProperty(navigator, 'automation', {get: () => false});
+            Object.defineProperty(navigator, 'webdriver', {get: () => false});
+            
+            // Mock realistic plugins
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => ({
+                    length: 3,
+                    0: {name: 'Chrome PDF Plugin', description: 'Portable Document Format'},
+                    1: {name: 'Chrome PDF Viewer', description: 'Portable Document Format'},
+                    2: {name: 'Native Client', description: 'Native Client Executable'}
+                })
+            });
+            
+            // Mock realistic screen properties
+            Object.defineProperty(screen, 'availHeight', {get: () => 1040});
+            Object.defineProperty(screen, 'availWidth', {get: () => 1920});
+            Object.defineProperty(screen, 'colorDepth', {get: () => 24});
+            Object.defineProperty(screen, 'height', {get: () => 1080});
+            Object.defineProperty(screen, 'width', {get: () => 1920});
+            
+            // Mock realistic timezone
+            Object.defineProperty(Intl.DateTimeFormat.prototype, 'resolvedOptions', {
+                value: function() { return {timeZone: 'America/New_York'}; }
+            });
+            
+            // Override getParameter to hide automation
+            const originalGetParameter = WebGLRenderingContext.prototype.getParameter;
+            WebGLRenderingContext.prototype.getParameter = function(parameter) {
+                if (parameter === 37445) {
+                    return 'Intel Inc.';
+                }
+                if (parameter === 37446) {
+                    return 'Intel(R) Iris(TM) Graphics 6100';
+                }
+                return originalGetParameter.call(this, parameter);
+            };
+            
+            // Mock realistic connection
+            Object.defineProperty(navigator, 'connection', {
+                get: () => ({
+                    effectiveType: '4g',
+                    rtt: 50,
+                    downlink: 10
+                })
+            });
+            
+            // Override Date to appear more human
+            const originalDate = Date;
+            Date = class extends originalDate {
+                constructor(...args) {
+                    if (args.length === 0) {
+                        super(originalDate.now() + Math.random() * 1000);
+                    } else {
+                        super(...args);
+                    }
+                }
+            };
+            
+            // Mock realistic battery API
+            if (navigator.getBattery) {
+                navigator.getBattery = () => Promise.resolve({
+                    charging: true,
+                    chargingTime: 0,
+                    dischargingTime: Infinity,
+                    level: 0.8
+                });
+            }
+            
+            // Override canvas fingerprinting
+            const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+            HTMLCanvasElement.prototype.toDataURL = function() {
+                const context = this.getContext('2d');
+                if (context) {
+                    context.fillStyle = 'rgba(255, 255, 255, 0.01)';
+                    context.fillRect(0, 0, 1, 1);
+                }
+                return originalToDataURL.apply(this, arguments);
+            };
+            
+            // Mock realistic hardware concurrency
+            Object.defineProperty(navigator, 'hardwareConcurrency', {get: () => 8});
+            
+            // Override notification permission
+            Object.defineProperty(Notification, 'permission', {get: () => 'default'});
+            
+            // Mock realistic memory
+            Object.defineProperty(navigator, 'deviceMemory', {get: () => 8});
+            
+            // Override speech synthesis
+            if (window.speechSynthesis) {
+                Object.defineProperty(window.speechSynthesis, 'getVoices', {
+                    value: () => [
+                        {name: 'Google US English', lang: 'en-US', default: true},
+                        {name: 'Microsoft David Desktop', lang: 'en-US'},
+                        {name: 'Microsoft Zira Desktop', lang: 'en-US'}
+                    ]
+                });
+            }
+            
+            // Remove automation indicators from window
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+            
+            // Mock realistic touch support
+            Object.defineProperty(navigator, 'maxTouchPoints', {get: () => 0});
+            
+            // Override geolocation
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition = () => {};
+                navigator.geolocation.watchPosition = () => {};
+            }
+            
+            console.log('Stealth measures applied successfully');
+            """
+            
+            driver.execute_script(stealth_script)
+            print("✅ Advanced stealth measures applied successfully")
+            
         except Exception as e:
             print(f"⚠️ Some stealth measures failed: {e}")
             pass  # Continue even if stealth measures fail
@@ -144,12 +347,38 @@ def setup_driver() -> WebDriver:
             try:
                 print(f"🌐 Navigating to Naukri.com (attempt {nav_attempt + 1}/{max_nav_retries})...")
                 
-                # Add random delay to avoid rate limiting
+                # Add human-like random delay to avoid rate limiting
                 import random
-                delay = random.uniform(2, 5)
+                delay = random.uniform(3, 8)  # Longer, more human-like delays
+                print(f"⏱️ Waiting {delay:.1f} seconds (human-like delay)...")
                 time.sleep(delay)
                 
+                # Simulate human-like mouse movement before navigation
+                try:
+                    from selenium.webdriver.common.action_chains import ActionChains
+                    actions = ActionChains(driver)
+                    # Random mouse movements
+                    for _ in range(random.randint(2, 5)):
+                        x_offset = random.randint(-100, 100)
+                        y_offset = random.randint(-100, 100)
+                        actions.move_by_offset(x_offset, y_offset)
+                        actions.perform()
+                        time.sleep(random.uniform(0.1, 0.3))
+                except:
+                    pass  # Continue if mouse simulation fails
+                
                 driver.get("https://www.naukri.com/")
+                
+                # Simulate human-like scrolling behavior
+                try:
+                    import random
+                    scroll_pause_time = random.uniform(0.5, 2.0)
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight/4);")
+                    time.sleep(scroll_pause_time)
+                    driver.execute_script("window.scrollTo(0, 0);")
+                    time.sleep(scroll_pause_time)
+                except:
+                    pass
                 
                 # Validate session is still active
                 current_url = driver.current_url
@@ -162,20 +391,27 @@ def setup_driver() -> WebDriver:
                     print(f"⚠️ Access denied on attempt {nav_attempt + 1}")
                     if nav_attempt < max_nav_retries - 1:
                         print("🔄 Retrying with different approach...")
-                        time.sleep(10)  # Wait longer before retry
+                        # Longer wait with exponential backoff
+                        wait_time = 15 + (nav_attempt * 10)
+                        print(f"⏱️ Waiting {wait_time} seconds before retry...")
+                        time.sleep(wait_time)
                         continue
                     else:
                         raise Exception("Access denied - website is blocking automated requests")
                 
-                # Wait for page to load
-                time.sleep(5)
+                # Wait for page to load with human-like timing
+                load_time = random.uniform(3, 7)
+                print(f"⏱️ Waiting {load_time:.1f} seconds for page to load...")
+                time.sleep(load_time)
                 break
                 
             except Exception as nav_error:
                 print(f"⚠️ Navigation attempt {nav_attempt + 1} failed: {nav_error}")
                 if nav_attempt < max_nav_retries - 1:
                     print("🔄 Retrying navigation...")
-                    time.sleep(5)
+                    retry_delay = random.uniform(5, 10)
+                    print(f"⏱️ Waiting {retry_delay:.1f} seconds before retry...")
+                    time.sleep(retry_delay)
                 else:
                     raise nav_error
         
@@ -364,6 +600,7 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
         email: The user's email address.
         password: The user's password.
     """
+    import random
     wait = WebDriverWait(driver, 15)
     
     try:
@@ -392,16 +629,37 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
             print("🔍 Page title:", driver.title)
             raise Exception("Email input field not found")
         
+        # Simulate human-like typing for email
         email_input.clear()
-        email_input.send_keys(email)
+        time.sleep(random.uniform(0.5, 1.5))  # Pause before typing
+        
+        # Type email character by character with random delays
+        for char in email:
+            email_input.send_keys(char)
+            time.sleep(random.uniform(0.05, 0.2))  # Random typing speed
+        
         print(f"📧 Entered email: {email}")
+        
+        # Simulate human pause between fields
+        time.sleep(random.uniform(1, 3))
         
         print("🔍 Looking for password input field...")
         # Find password input field
         password_input = driver.find_element(By.XPATH, "//input[@type='password']")
+        
+        # Simulate human-like password entry
         password_input.clear()
-        password_input.send_keys(password)
+        time.sleep(random.uniform(0.5, 1.5))  # Pause before typing
+        
+        # Type password character by character with random delays
+        for char in password:
+            password_input.send_keys(char)
+            time.sleep(random.uniform(0.08, 0.25))  # Slightly slower for password
+        
         print("🔒 Entered password")
+        
+        # Simulate human pause before clicking login
+        time.sleep(random.uniform(2, 4))
         
         print("🔍 Looking for login button...")
         # Click login button with multiple possible selectors
