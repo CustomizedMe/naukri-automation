@@ -42,205 +42,204 @@ def setup_driver() -> WebDriver:
     import platform
     import tempfile
     
-    # Chrome options for better compatibility
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_argument("--disable-popup-blocking")
-    chrome_options.add_argument("--disable-notifications")
-    chrome_options.add_argument("--no-first-run")
-    chrome_options.add_argument("--no-default-browser-check")
-    chrome_options.add_argument("--disable-default-apps")
-    chrome_options.add_argument("--disable-extensions")
-    
-    # Stealth Chrome options to avoid detection
-    chrome_options.add_argument("--headless=new")  # Use new headless mode
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-plugins")
-    chrome_options.add_argument("--disable-web-security")
-    chrome_options.add_argument("--allow-running-insecure-content")
-    chrome_options.add_argument("--disable-features=VizDisplayCompositor")
-    chrome_options.add_argument("--remote-debugging-port=9222")
-    chrome_options.add_argument("--disable-background-timer-throttling")
-    chrome_options.add_argument("--disable-backgrounding-occluded-windows")
-    chrome_options.add_argument("--disable-renderer-backgrounding")
-    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36")
-    chrome_options.add_argument("--accept-language=en-US,en;q=0.9")
-    chrome_options.add_argument("--accept-encoding=gzip, deflate, br")
-    chrome_options.add_argument("--accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-    
-    print("🌐 Using cloud-optimized Chrome configuration")
-    
-    # Start Chrome with robust error handling
-    driver = None
-    max_retries = 3
-    
-    for attempt in range(max_retries):
-        try:
-            print(f"🔍 Attempting to start Chrome (attempt {attempt + 1}/{max_retries})...")
-            
-            # Create service with better configuration
-            service = Service(ChromeDriverManager().install())
-            service.start()
-            
-            # Create driver with explicit service
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-            
-            # Set timeouts for better stability
-            driver.set_page_load_timeout(30)
-            driver.implicitly_wait(10)
-            
-            # Test the session by getting the current URL
-            driver.get("about:blank")
-            print("✅ Chrome started successfully and session is valid")
-            break
-            
-        except Exception as e:
-            print(f"⚠️ Chrome startup attempt {attempt + 1} failed: {e}")
-            if driver:
-                try:
-                    driver.quit()
-                except:
-                    pass
-                driver = None
-            
-            if attempt < max_retries - 1:
-                print("🔄 Retrying with different configuration...")
-                time.sleep(2)
-            else:
-                print("❌ All Chrome startup attempts failed")
-                raise Exception(f"Failed to start Chrome after {max_retries} attempts: {e}")
-    
-    if not driver:
-        raise Exception("Failed to create Chrome driver instance")
-    
-    # Execute stealth scripts to avoid detection
     try:
-        # Remove webdriver property
-        driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        # Chrome options for better compatibility
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--disable-popup-blocking")
+        chrome_options.add_argument("--disable-notifications")
+        chrome_options.add_argument("--no-first-run")
+        chrome_options.add_argument("--no-default-browser-check")
+        chrome_options.add_argument("--disable-default-apps")
+        chrome_options.add_argument("--disable-extensions")
         
-        # Override the plugins property
-        driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
+        # Stealth Chrome options to avoid detection
+        chrome_options.add_argument("--headless=new")  # Use new headless mode
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
+        chrome_options.add_argument("--disable-plugins")
+        chrome_options.add_argument("--disable-web-security")
+        chrome_options.add_argument("--allow-running-insecure-content")
+        chrome_options.add_argument("--disable-features=VizDisplayCompositor")
+        chrome_options.add_argument("--remote-debugging-port=9222")
+        chrome_options.add_argument("--disable-background-timer-throttling")
+        chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+        chrome_options.add_argument("--disable-renderer-backgrounding")
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36")
+        chrome_options.add_argument("--accept-language=en-US,en;q=0.9")
+        chrome_options.add_argument("--accept-encoding=gzip, deflate, br")
+        chrome_options.add_argument("--accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
         
-        # Override the languages property
-        driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})")
+        print("🌐 Using cloud-optimized Chrome configuration")
         
-        # Override the permissions property
-        driver.execute_script("Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})})")
+        # Start Chrome with robust error handling
+        driver = None
+        max_retries = 3
         
-        print("✅ Stealth measures applied successfully")
-    except Exception as e:
-        print(f"⚠️ Some stealth measures failed: {e}")
-        pass  # Continue even if stealth measures fail
-    
-    # Navigate to Naukri with session validation and retry logic
-    max_nav_retries = 3
-    for nav_attempt in range(max_nav_retries):
-        try:
-            print(f"🌐 Navigating to Naukri.com (attempt {nav_attempt + 1}/{max_nav_retries})...")
-            
-            # Add random delay to avoid rate limiting
-            import random
-            delay = random.uniform(2, 5)
-            time.sleep(delay)
-            
-            driver.get("https://www.naukri.com/")
-            
-            # Validate session is still active
-            current_url = driver.current_url
-            page_title = driver.title
-            print(f"📍 Current URL: {current_url}")
-            print(f"📄 Page Title: {page_title}")
-            
-            # Check if we got blocked
-            if "Access Denied" in page_title or "blocked" in page_title.lower():
-                print(f"⚠️ Access denied on attempt {nav_attempt + 1}")
-                if nav_attempt < max_nav_retries - 1:
-                    print("🔄 Retrying with different approach...")
-                    time.sleep(10)  # Wait longer before retry
-                    continue
+        for attempt in range(max_retries):
+            try:
+                print(f"🔍 Attempting to start Chrome (attempt {attempt + 1}/{max_retries})...")
+                
+                # Create service with better configuration
+                service = Service(ChromeDriverManager().install())
+                service.start()
+                
+                # Create driver with explicit service
+                driver = webdriver.Chrome(service=service, options=chrome_options)
+                
+                # Set timeouts for better stability
+                driver.set_page_load_timeout(30)
+                driver.implicitly_wait(10)
+                
+                # Test the session by getting the current URL
+                driver.get("about:blank")
+                print("✅ Chrome started successfully and session is valid")
+                break
+                
+            except Exception as e:
+                print(f"⚠️ Chrome startup attempt {attempt + 1} failed: {e}")
+                if driver:
+                    try:
+                        driver.quit()
+                    except:
+                        pass
+                    driver = None
+                
+                if attempt < max_retries - 1:
+                    print("🔄 Retrying with different configuration...")
+                    time.sleep(2)
                 else:
-                    raise Exception("Access denied - website is blocking automated requests")
-            
-            # Wait for page to load
-            time.sleep(5)
-            break
-            
-        except Exception as nav_error:
-            print(f"⚠️ Navigation attempt {nav_attempt + 1} failed: {nav_error}")
-            if nav_attempt < max_nav_retries - 1:
-                print("🔄 Retrying navigation...")
-                time.sleep(5)
-            else:
-                raise nav_error
-    
-    # Try to find and click login button with multiple selectors
-    print("🔍 Looking for login button...")
-    
-    # Wait for page to fully load
-    time.sleep(5)
-    
-    # Try multiple selectors for login button
-    login_selectors = [
-        (By.LINK_TEXT, "Login"),
-        (By.PARTIAL_LINK_TEXT, "Login"),
-        (By.XPATH, "//a[contains(text(), 'Login')]"),
-        (By.XPATH, "//a[contains(text(), 'login')]"),
-        (By.XPATH, "//button[contains(text(), 'Login')]"),
-        (By.XPATH, "//button[contains(text(), 'login')]"),
-        (By.XPATH, "//a[@href*='login']"),
-        (By.XPATH, "//button[@class*='login']"),
-        (By.CSS_SELECTOR, "a[href*='login']"),
-        (By.CSS_SELECTOR, "button[class*='login']")
-    ]
-    
-    login_button = None
-    for selector_type, selector_value in login_selectors:
-        try:
-            print(f"🔍 Trying selector: {selector_type} = '{selector_value}'")
-            login_button = driver.find_element(selector_type, selector_value)
-            print(f"✅ Found login button with: {selector_type} = '{selector_value}'")
-            break
-        except:
-            continue
-    
-    if not login_button:
-        print("❌ Could not find login button with any selector")
-        print("🔄 Trying direct navigation to login page...")
+                    print("❌ All Chrome startup attempts failed")
+                    raise Exception(f"Failed to start Chrome after {max_retries} attempts: {e}")
         
-        # Try direct navigation to login page
+        if not driver:
+            raise Exception("Failed to create Chrome driver instance")
+        
+        # Execute stealth scripts to avoid detection
         try:
-            driver.get("https://www.naukri.com/nlogin/login")
-            time.sleep(5)
-            print("✅ Navigated directly to login page")
-        except Exception as nav_error:
-            print(f"❌ Direct navigation failed: {nav_error}")
-            print("🔍 Current page source preview:")
-            print(driver.page_source[:500] + "...")
-            raise Exception("Login button not found and direct navigation failed")
-    else:
-        # Click the login button
-        login_button.click()
-        print("✅ Login button clicked successfully")
-        time.sleep(3)
-    
-    print("🚀 Driver setup completed successfully")
-    return driver
-    
-except Exception as e:
-    print(f"❌ Navigation failed: {e}")
-    if driver:
-        try:
-            driver.quit()
-        except:
-            pass
-    raise Exception(f"Failed to navigate to Naukri: {e}")
+            # Remove webdriver property
+            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            
+            # Override the plugins property
+            driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
+            
+            # Override the languages property
+            driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']})")
+            
+            # Override the permissions property
+            driver.execute_script("Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})})")
+            
+            print("✅ Stealth measures applied successfully")
+        except Exception as e:
+            print(f"⚠️ Some stealth measures failed: {e}")
+            pass  # Continue even if stealth measures fail
+        
+        # Navigate to Naukri with session validation and retry logic
+        max_nav_retries = 3
+        for nav_attempt in range(max_nav_retries):
+            try:
+                print(f"🌐 Navigating to Naukri.com (attempt {nav_attempt + 1}/{max_nav_retries})...")
+                
+                # Add random delay to avoid rate limiting
+                import random
+                delay = random.uniform(2, 5)
+                time.sleep(delay)
+                
+                driver.get("https://www.naukri.com/")
+                
+                # Validate session is still active
+                current_url = driver.current_url
+                page_title = driver.title
+                print(f"📍 Current URL: {current_url}")
+                print(f"📄 Page Title: {page_title}")
+                
+                # Check if we got blocked
+                if "Access Denied" in page_title or "blocked" in page_title.lower():
+                    print(f"⚠️ Access denied on attempt {nav_attempt + 1}")
+                    if nav_attempt < max_nav_retries - 1:
+                        print("🔄 Retrying with different approach...")
+                        time.sleep(10)  # Wait longer before retry
+                        continue
+                    else:
+                        raise Exception("Access denied - website is blocking automated requests")
+                
+                # Wait for page to load
+                time.sleep(5)
+                break
+                
+            except Exception as nav_error:
+                print(f"⚠️ Navigation attempt {nav_attempt + 1} failed: {nav_error}")
+                if nav_attempt < max_nav_retries - 1:
+                    print("🔄 Retrying navigation...")
+                    time.sleep(5)
+                else:
+                    raise nav_error
+        
+        # Try to find and click login button with multiple selectors
+        print("🔍 Looking for login button...")
+        
+        # Wait for page to fully load
+        time.sleep(5)
+        
+        # Try multiple selectors for login button
+        login_selectors = [
+            (By.LINK_TEXT, "Login"),
+            (By.PARTIAL_LINK_TEXT, "Login"),
+            (By.XPATH, "//a[contains(text(), 'Login')]"),
+            (By.XPATH, "//a[contains(text(), 'login')]"),
+            (By.XPATH, "//button[contains(text(), 'Login')]"),
+            (By.XPATH, "//button[contains(text(), 'login')]"),
+            (By.XPATH, "//a[@href*='login']"),
+            (By.XPATH, "//button[@class*='login']"),
+            (By.CSS_SELECTOR, "a[href*='login']"),
+            (By.CSS_SELECTOR, "button[class*='login']")
+        ]
+        
+        login_button = None
+        for selector_type, selector_value in login_selectors:
+            try:
+                print(f"🔍 Trying selector: {selector_type} = '{selector_value}'")
+                login_button = driver.find_element(selector_type, selector_value)
+                print(f"✅ Found login button with: {selector_type} = '{selector_value}'")
+                break
+            except:
+                continue
+        
+        if not login_button:
+            print("❌ Could not find login button with any selector")
+            print("🔄 Trying direct navigation to login page...")
+            
+            # Try direct navigation to login page
+            try:
+                driver.get("https://www.naukri.com/nlogin/login")
+                time.sleep(5)
+                print("✅ Navigated directly to login page")
+            except Exception as nav_error:
+                print(f"❌ Direct navigation failed: {nav_error}")
+                print("🔍 Current page source preview:")
+                print(driver.page_source[:500] + "...")
+                raise Exception("Login button not found and direct navigation failed")
+        else:
+            # Click the login button
+            login_button.click()
+            print("✅ Login button clicked successfully")
+            time.sleep(3)
+        
+        print("🚀 Driver setup completed successfully")
+        return driver
+        
+    except Exception as e:
+        print(f"❌ Setup failed: {e}")
+        if 'driver' in locals() and driver:
+            try:
+                driver.quit()
+            except:
+                pass
+        raise Exception(f"Failed to setup driver: {e}")
 
 def login_with_google(driver: WebDriver, email: str) -> None:
     """
