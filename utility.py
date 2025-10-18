@@ -692,6 +692,33 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
         # Check for login success/failure with comprehensive validation
         print("🔍 Validating login status...")
         
+        # First, check if we can see user-specific elements (indicating successful login)
+        try:
+            user_indicators = [
+                "//a[contains(@href, 'mnjuser')]",
+                "//div[contains(@class, 'user')]",
+                "//span[contains(@class, 'user')]",
+                "//div[contains(text(), 'Welcome')]",
+                "//a[contains(text(), 'Profile')]",
+                "//a[contains(text(), 'Dashboard')]"
+            ]
+            
+            user_found = False
+            for indicator in user_indicators:
+                try:
+                    elements = driver.find_elements(By.XPATH, indicator)
+                    if elements:
+                        print(f"✅ Found user indicator: {indicator}")
+                        user_found = True
+                        break
+                except:
+                    continue
+            
+            if user_found:
+                print("🎯 Login appears successful - user elements detected")
+        except:
+            pass
+        
         # Check for error messages first
         error_found = False
         try:
@@ -729,10 +756,41 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
         print(f"📍 Current URL after login: {current_url}")
         print(f"📄 Page Title after login: {page_title}")
         
-        # Check if we're still on login page
+        # Check if we're still on login page or got redirected back
         if "login" in current_url.lower() or "signin" in current_url.lower():
-            print("⚠️ Still on login page - login failed")
-            error_found = True
+            print("⚠️ Still on login page - checking for redirect issues...")
+            
+            # Check if this is a redirect loop with malformed URL
+            if "URL=//" in current_url:
+                print("🔧 Detected malformed redirect URL - attempting to fix...")
+                # Extract the target URL and fix it
+                try:
+                    if "URL=//" in current_url:
+                        # Extract the malformed URL and fix it
+                        malformed_url = current_url.split("URL=")[1]
+                        if malformed_url.startswith("//"):
+                            fixed_url = "https:" + malformed_url
+                            print(f"🔧 Fixed URL: {fixed_url}")
+                            driver.get(fixed_url)
+                            time.sleep(5)
+                            
+                            # Check if we can access the profile now
+                            new_url = driver.current_url
+                            if "login" not in new_url.lower() and "signin" not in new_url.lower():
+                                print("✅ Successfully fixed redirect and accessed profile")
+                                error_found = False
+                            else:
+                                print("❌ Still redirected to login after URL fix")
+                                error_found = True
+                        else:
+                            error_found = True
+                    else:
+                        error_found = True
+                except Exception as fix_error:
+                    print(f"❌ Failed to fix redirect URL: {fix_error}")
+                    error_found = True
+            else:
+                error_found = True
         
         # Check for CAPTCHA or additional verification
         try:
@@ -753,19 +811,54 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
                 print("Could not retrieve page source")
             raise Exception("Login failed - invalid credentials or additional verification required")
         
-        # Navigate to profile page
+        # Navigate to profile page with better error handling
         print("🔍 Navigating to profile page...")
-        driver.get("https://www.naukri.com/mnjuser/profile")
-        time.sleep(5)
         
-        # Final validation - check if we can access profile
-        final_url = driver.current_url
-        if "login" in final_url.lower() or "signin" in final_url.lower():
-            print("⚠️ Redirected back to login - authentication failed")
+        # Try multiple approaches to access profile
+        profile_urls = [
+            "https://www.naukri.com/mnjuser/profile",
+            "https://www.naukri.com/mnjuser/homepage",
+            "https://www.naukri.com/mnjuser/dashboard"
+        ]
+        
+        profile_accessed = False
+        for profile_url in profile_urls:
+            try:
+                print(f"🔍 Trying to access: {profile_url}")
+                driver.get(profile_url)
+                time.sleep(5)
+                
+                # Check if we successfully accessed the profile
+                final_url = driver.current_url
+                page_title = driver.title
+                print(f"📍 Final URL: {final_url}")
+                print(f"📄 Final Page Title: {page_title}")
+                
+                # Check for success indicators
+                success_indicators = [
+                    "mynaukri" in final_url.lower(),
+                    "profile" in final_url.lower(),
+                    "dashboard" in final_url.lower(),
+                    "homepage" in final_url.lower(),
+                    "mynaukri" in page_title.lower(),
+                    "profile" in page_title.lower()
+                ]
+                
+                if any(success_indicators) and "login" not in final_url.lower():
+                    print("🎯 Successfully accessed profile page")
+                    print(f"Current URL: {final_url}")
+                    profile_accessed = True
+                    break
+                else:
+                    print(f"⚠️ Still on login page or redirected: {final_url}")
+                    
+            except Exception as nav_error:
+                print(f"⚠️ Failed to access {profile_url}: {nav_error}")
+                continue
+        
+        if not profile_accessed:
+            print("❌ Could not access any profile page - authentication failed")
             raise Exception("Authentication failed - unable to access profile page")
-        else:
-            print("🎯 Successfully navigated to profile page")
-            print(f"Current URL: {final_url}")
         
     except Exception as e:
         print(f"❌ Email/Password login failed: {e}")
