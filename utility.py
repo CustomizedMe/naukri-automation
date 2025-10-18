@@ -52,16 +52,24 @@ def setup_driver() -> WebDriver:
     chrome_options.add_argument("--disable-default-apps")
     chrome_options.add_argument("--disable-extensions")
     
-    # Create a temporary user data directory to avoid conflicts
-    temp_dir = tempfile.mkdtemp()
-    chrome_options.add_argument(f"--user-data-dir={temp_dir}")
+    # Check if running in cloud environment (GitHub Actions)
+    import os
+    is_cloud = os.getenv('GITHUB_ACTIONS') is not None
     
-    # Additional options for cloud/headless environments
-    chrome_options.add_argument("--headless")  # Run in headless mode for cloud
-    chrome_options.add_argument("--no-sandbox")  # Required for cloud environments
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-    chrome_options.add_argument("--disable-gpu")  # Disable GPU in headless mode
-    chrome_options.add_argument("--remote-debugging-port=9222")  # Enable remote debugging
+    if is_cloud:
+        # Cloud-friendly options (no user data directory)
+        chrome_options.add_argument("--headless")  # Run in headless mode for cloud
+        chrome_options.add_argument("--no-sandbox")  # Required for cloud environments
+        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+        chrome_options.add_argument("--disable-gpu")  # Disable GPU in headless mode
+        chrome_options.add_argument("--disable-web-security")  # Disable web security for cloud
+        chrome_options.add_argument("--disable-features=VizDisplayCompositor")  # Disable display compositor
+        chrome_options.add_argument("--single-process")  # Run in single process mode
+    else:
+        # Local environment - use temporary user data directory
+        temp_dir = tempfile.mkdtemp()
+        chrome_options.add_argument(f"--user-data-dir={temp_dir}")
+        chrome_options.add_argument("--remote-debugging-port=9222")  # Enable remote debugging
     
     # Try to use existing Chrome profile if possible
     try:
@@ -77,11 +85,18 @@ def setup_driver() -> WebDriver:
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("--disable-popup-blocking")
         chrome_options.add_argument("--disable-notifications")
-        chrome_options.add_argument("--headless")  # Run in headless mode for cloud
-        chrome_options.add_argument("--no-sandbox")  # Required for cloud environments
-        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-        chrome_options.add_argument("--disable-gpu")  # Disable GPU in headless mode
-        chrome_options.add_argument("--remote-debugging-port=9222")  # Enable remote debugging
+        
+        if is_cloud:
+            # Cloud-friendly fallback options
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-web-security")
+            chrome_options.add_argument("--single-process")
+        else:
+            # Local fallback options
+            chrome_options.add_argument("--remote-debugging-port=9222")
         
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
