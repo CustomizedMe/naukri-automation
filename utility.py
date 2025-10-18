@@ -427,30 +427,87 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
         
         login_button.click()
         print("✅ Clicked login button")
-        time.sleep(5)
         
-        # Check if login was successful by looking for error messages or success indicators
+        # Wait for login to process
+        time.sleep(8)
+        
+        # Check for login success/failure with comprehensive validation
+        print("🔍 Validating login status...")
+        
+        # Check for error messages first
+        error_found = False
         try:
-            # Look for error messages
-            error_elements = driver.find_elements(By.XPATH, "//div[contains(@class, 'error') or contains(text(), 'Invalid') or contains(text(), 'Wrong')]")
-            if error_elements:
-                print("⚠️ Login error detected:", error_elements[0].text)
+            # Look for various error message patterns
+            error_selectors = [
+                "//div[contains(@class, 'error')]",
+                "//div[contains(@class, 'alert')]",
+                "//span[contains(@class, 'error')]",
+                "//div[contains(text(), 'Invalid')]",
+                "//div[contains(text(), 'Wrong')]",
+                "//div[contains(text(), 'incorrect')]",
+                "//div[contains(text(), 'failed')]",
+                "//div[contains(text(), 'blocked')]"
+            ]
+            
+            for selector in error_selectors:
+                try:
+                    error_elements = driver.find_elements(By.XPATH, selector)
+                    for error_element in error_elements:
+                        error_text = error_element.text.strip()
+                        if error_text and len(error_text) > 0:
+                            print(f"❌ Login error detected: {error_text}")
+                            error_found = True
+                            break
+                    if error_found:
+                        break
+                except:
+                    continue
         except:
             pass
+        
+        # Check current URL and page content
+        current_url = driver.current_url
+        page_title = driver.title
+        print(f"📍 Current URL after login: {current_url}")
+        print(f"📄 Page Title after login: {page_title}")
+        
+        # Check if we're still on login page
+        if "login" in current_url.lower() or "signin" in current_url.lower():
+            print("⚠️ Still on login page - login failed")
+            error_found = True
+        
+        # Check for CAPTCHA or additional verification
+        try:
+            captcha_elements = driver.find_elements(By.XPATH, "//div[contains(@class, 'captcha') or contains(@id, 'captcha')]")
+            if captcha_elements:
+                print("⚠️ CAPTCHA detected - manual intervention required")
+                error_found = True
+        except:
+            pass
+        
+        if error_found:
+            print("❌ Login failed - please check credentials and try again")
+            print("🔍 Debug: Current page source preview:")
+            try:
+                page_source = driver.page_source
+                print(page_source[:1000] + "..." if len(page_source) > 1000 else page_source)
+            except:
+                print("Could not retrieve page source")
+            raise Exception("Login failed - invalid credentials or additional verification required")
         
         # Navigate to profile page
         print("🔍 Navigating to profile page...")
         driver.get("https://www.naukri.com/mnjuser/profile")
         time.sleep(5)
         
-        # Check if we're actually logged in
-        current_url = driver.current_url
-        if "login" in current_url.lower() or "signin" in current_url.lower():
-            print("⚠️ Still on login page - login may have failed")
-            print(f"Current URL: {current_url}")
+        # Final validation - check if we can access profile
+        final_url = driver.current_url
+        if "login" in final_url.lower() or "signin" in final_url.lower():
+            print("⚠️ Redirected back to login - authentication failed")
+            raise Exception("Authentication failed - unable to access profile page")
         else:
             print("🎯 Successfully navigated to profile page")
-            print(f"Current URL: {current_url}")
+            print(f"Current URL: {final_url}")
         
     except Exception as e:
         print(f"❌ Email/Password login failed: {e}")
