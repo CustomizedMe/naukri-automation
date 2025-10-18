@@ -1,34 +1,54 @@
-PDF Index Maker
-========
+# Naukri Profile Automation
 
-PDF Index Maker is a tool for creating an index from a PDF file.
+Automatically refreshes your Naukri.com profile daily at 8:00 AM IST using GitHub Actions.
 
-It uses a very slightly modified <a href="http://www.unixuser.org/~euske/python/pdfminer/">PDFMiner</a> to extract readable text from a pdf file along with page numbers of the text. PDF Index Maker takes a list of words, scans the text, and outputs every word (if it was found) along with the associated page numbers.
+## Features
 
-Usage
-------
-    $ git clone https://github.com/jemuelyoung/pdf-index-maker
-    $ cd pdf-index-maker
-    $ python setup.py install
+- 🕐 **Daily Automation**: Runs automatically every morning at 8:00 AM IST
+- 🔐 **Multiple Login Methods**: Google OAuth, Email/Password, or OTP
+- 📝 **Complete Logging**: All runs are logged with detailed results
+- ☁️ **Cloud-Based**: Runs on GitHub Actions (24/7 reliability)
+- 🔒 **Secure**: Credentials stored as GitHub Secrets
 
-To make create an index, add the words to a text file separating each word with a newline.
+## Setup
 
-* Use the -w flag to indicate the location of the file to read the words list from 
-* Use the -f flag to indicate the location of the pdf file
+1. **Fork this repository** to your GitHub account
+2. **Upload your resume** to the repository (name it `resume.pdf`)
+3. **Configure secrets** in your GitHub repository settings:
+   - `LOGIN_METHOD`: `google`, `email_password`, or `otp`
+   - `NAUKRI_EMAIL`: Your Naukri email
+   - `NAUKRI_PASSWORD`: Your Naukri password
+   - `GOOGLE_EMAIL`: Your Google email (if using Google login)
+   - `PHONE_NUMBER`: Your phone number (if using OTP)
 
-* [Optional] Use the -p if you want the output printed to the console (default: False)
-* [Optional] Use the -o to indicate the file to output the index to (default: index.txt)
+## How It Works
 
+1. **GitHub Actions** triggers daily at 8:00 AM IST
+2. **Sets up environment** with Python and Chrome
+3. **Runs automation** to refresh your Naukri profile
+4. **Logs results** and uploads artifacts
+5. **Notifies** on success or failure
 
-    `$ python indexMaker.py -w words.txt -f some_pdf.pdf -o output.txt`
+## Manual Trigger
 
+You can also trigger the automation manually:
+1. Go to **Actions** tab in your repository
+2. Select **Naukri Profile Automation**
+3. Click **Run workflow**
 
+## Security
 
-License
------
+- All credentials are stored as GitHub Secrets
+- Resume file is kept private in your repository
+- No sensitive data is logged
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+## Monitoring
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+Check the **Actions** tab to see:
+- ✅ Successful runs
+- ❌ Failed runs with error details
+- 📊 Run logs and artifacts
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+---
+
+**Your job search automation is now running in the cloud! 🚀**

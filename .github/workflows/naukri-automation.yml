@@ -1,0 +1,83 @@
+name: Naukri Profile Automation
+
+# Run daily at 8:00 AM IST (2:30 AM UTC)
+on:
+  schedule:
+    - cron: '30 2 * * *'  # 8:00 AM IST = 2:30 AM UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  naukri-automation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Create environment file
+      run: |
+        echo "LOGIN_METHOD=${{ secrets.LOGIN_METHOD }}" >> .env
+        echo "NAUKRI_EMAIL=${{ secrets.NAUKRI_EMAIL }}" >> .env
+        echo "NAUKRI_PASSWORD=${{ secrets.NAUKRI_PASSWORD }}" >> .env
+        echo "GOOGLE_EMAIL=${{ secrets.GOOGLE_EMAIL }}" >> .env
+        echo "PHONE_NUMBER=${{ secrets.PHONE_NUMBER }}" >> .env
+        
+    - name: Download resume file
+      run: |
+        # Create resume directory
+        mkdir -p "/tmp/resume"
+        # Download resume from GitHub (you'll need to upload your resume to the repo)
+        # For now, we'll create a placeholder
+        echo "Resume file will be downloaded from repository"
+        
+    - name: Update resume path in main.py
+      run: |
+        # Update the resume path to point to the downloaded file
+        sed -i 's|RESUME_FILE_PATH = "/Users/mac/Documents/Job Material/PrakharBhatnagar_Resume.pdf"|RESUME_FILE_PATH = "/tmp/resume/resume.pdf"|' main.py
+        
+    - name: Run Naukri automation
+      run: |
+        python main.py
+        
+    - name: Upload logs
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: automation-logs-${{ github.run_number }}
+        path: |
+          logs/
+        retention-days: 30
+        
+    - name: Notify on success
+      if: success()
+      run: |
+        echo "✅ Naukri automation completed successfully!"
+        echo "🕐 Time: $(date)"
+        echo "📊 Run ID: ${{ github.run_id }}"
+        
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ Naukri automation failed!"
+        echo "🕐 Time: $(date)"
+        echo "📊 Run ID: ${{ github.run_id }}"
+        echo "🔍 Check the logs for details"
