@@ -52,56 +52,54 @@ def setup_driver() -> WebDriver:
     chrome_options.add_argument("--disable-default-apps")
     chrome_options.add_argument("--disable-extensions")
     
-    # Check if running in cloud environment (GitHub Actions)
-    import os
-    is_cloud = os.getenv('GITHUB_ACTIONS') is not None
-    print(f"🌐 Environment: {'Cloud (GitHub Actions)' if is_cloud else 'Local'}")
+    # Always use cloud-friendly options for GitHub Actions compatibility
+    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--no-sandbox")  # Required for cloud environments
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+    chrome_options.add_argument("--disable-gpu")  # Disable GPU in headless mode
+    chrome_options.add_argument("--disable-web-security")  # Disable web security
+    chrome_options.add_argument("--disable-features=VizDisplayCompositor")  # Disable display compositor
+    chrome_options.add_argument("--single-process")  # Run in single process mode
+    chrome_options.add_argument("--disable-background-timer-throttling")  # Disable background throttling
+    chrome_options.add_argument("--disable-backgrounding-occluded-windows")  # Disable backgrounding
+    chrome_options.add_argument("--disable-renderer-backgrounding")  # Disable renderer backgrounding
+    chrome_options.add_argument("--disable-ipc-flooding-protection")  # Disable IPC flooding protection
     
-    if is_cloud:
-        # Cloud-friendly options (no user data directory)
-        chrome_options.add_argument("--headless")  # Run in headless mode for cloud
-        chrome_options.add_argument("--no-sandbox")  # Required for cloud environments
-        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-        chrome_options.add_argument("--disable-gpu")  # Disable GPU in headless mode
-        chrome_options.add_argument("--disable-web-security")  # Disable web security for cloud
-        chrome_options.add_argument("--disable-features=VizDisplayCompositor")  # Disable display compositor
-        chrome_options.add_argument("--single-process")  # Run in single process mode
-    else:
-        # Local environment - use temporary user data directory
-        temp_dir = tempfile.mkdtemp()
-        chrome_options.add_argument(f"--user-data-dir={temp_dir}")
-        chrome_options.add_argument("--remote-debugging-port=9222")  # Enable remote debugging
+    print("🌐 Using cloud-optimized Chrome configuration")
     
-    # Try to use existing Chrome profile if possible
-    try:
-        print("🔍 Attempting to start Chrome with profile...")
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        print("✅ Chrome started successfully")
-    except Exception as e:
-        print(f"⚠️ Chrome startup issue: {e}")
-        print("🔄 Trying with minimal options...")
-        
-        # Fallback with minimal options
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("--disable-popup-blocking")
-        chrome_options.add_argument("--disable-notifications")
-        
-        if is_cloud:
-            # Cloud-friendly fallback options
-            chrome_options.add_argument("--headless")
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--disable-gpu")
-            chrome_options.add_argument("--disable-web-security")
-            chrome_options.add_argument("--single-process")
-        else:
-            # Local fallback options
-            chrome_options.add_argument("--remote-debugging-port=9222")
-        
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        print("✅ Chrome started with minimal options")
+    # Start Chrome with robust error handling
+    driver = None
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"🔍 Attempting to start Chrome (attempt {attempt + 1}/{max_retries})...")
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            
+            # Test the session by getting the current URL
+            driver.get("about:blank")
+            print("✅ Chrome started successfully and session is valid")
+            break
+            
+        except Exception as e:
+            print(f"⚠️ Chrome startup attempt {attempt + 1} failed: {e}")
+            if driver:
+                try:
+                    driver.quit()
+                except:
+                    pass
+                driver = None
+            
+            if attempt < max_retries - 1:
+                print("🔄 Retrying with different configuration...")
+                time.sleep(2)
+            else:
+                print("❌ All Chrome startup attempts failed")
+                raise Exception(f"Failed to start Chrome after {max_retries} attempts: {e}")
+    
+    if not driver:
+        raise Exception("Failed to create Chrome driver instance")
     
     # Execute script to remove webdriver property
     try:
@@ -109,17 +107,36 @@ def setup_driver() -> WebDriver:
     except:
         pass  # Ignore if this fails
     
-    driver.get("https://www.naukri.com/")
-    driver.maximize_window()
-    time.sleep(3)
-    
-    # Click login button
-    login_button = driver.find_element(By.LINK_TEXT, "Login")
-    login_button.click()
-    time.sleep(3)
-    
-    print("🚀 Driver setup completed")
-    return driver
+    # Navigate to Naukri with session validation
+    try:
+        print("🌐 Navigating to Naukri.com...")
+        driver.get("https://www.naukri.com/")
+        
+        # Validate session is still active
+        current_url = driver.current_url
+        print(f"📍 Current URL: {current_url}")
+        
+        # Wait for page to load
+        time.sleep(5)
+        
+        # Try to find and click login button
+        print("🔍 Looking for login button...")
+        login_button = driver.find_element(By.LINK_TEXT, "Login")
+        login_button.click()
+        print("✅ Login button clicked")
+        time.sleep(3)
+        
+        print("🚀 Driver setup completed successfully")
+        return driver
+        
+    except Exception as e:
+        print(f"❌ Navigation failed: {e}")
+        if driver:
+            try:
+                driver.quit()
+            except:
+                pass
+        raise Exception(f"Failed to navigate to Naukri: {e}")
 
 def login_with_google(driver: WebDriver, email: str) -> None:
     """
