@@ -131,12 +131,55 @@ def setup_driver() -> WebDriver:
         # Wait for page to load
         time.sleep(5)
         
-        # Try to find and click login button
+        # Try to find and click login button with multiple selectors
         print("🔍 Looking for login button...")
-        login_button = driver.find_element(By.LINK_TEXT, "Login")
-        login_button.click()
-        print("✅ Login button clicked")
-        time.sleep(3)
+        
+        # Wait for page to fully load
+        time.sleep(5)
+        
+        # Try multiple selectors for login button
+        login_selectors = [
+            (By.LINK_TEXT, "Login"),
+            (By.PARTIAL_LINK_TEXT, "Login"),
+            (By.XPATH, "//a[contains(text(), 'Login')]"),
+            (By.XPATH, "//a[contains(text(), 'login')]"),
+            (By.XPATH, "//button[contains(text(), 'Login')]"),
+            (By.XPATH, "//button[contains(text(), 'login')]"),
+            (By.XPATH, "//a[@href*='login']"),
+            (By.XPATH, "//button[@class*='login']"),
+            (By.CSS_SELECTOR, "a[href*='login']"),
+            (By.CSS_SELECTOR, "button[class*='login']")
+        ]
+        
+        login_button = None
+        for selector_type, selector_value in login_selectors:
+            try:
+                print(f"🔍 Trying selector: {selector_type} = '{selector_value}'")
+                login_button = driver.find_element(selector_type, selector_value)
+                print(f"✅ Found login button with: {selector_type} = '{selector_value}'")
+                break
+            except:
+                continue
+        
+        if not login_button:
+            print("❌ Could not find login button with any selector")
+            print("🔄 Trying direct navigation to login page...")
+            
+            # Try direct navigation to login page
+            try:
+                driver.get("https://www.naukri.com/nlogin/login")
+                time.sleep(5)
+                print("✅ Navigated directly to login page")
+            except Exception as nav_error:
+                print(f"❌ Direct navigation failed: {nav_error}")
+                print("🔍 Current page source preview:")
+                print(driver.page_source[:500] + "...")
+                raise Exception("Login button not found and direct navigation failed")
+        else:
+            # Click the login button
+            login_button.click()
+            print("✅ Login button clicked successfully")
+            time.sleep(3)
         
         print("🚀 Driver setup completed successfully")
         return driver
