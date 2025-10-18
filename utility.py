@@ -55,6 +55,7 @@ def setup_driver() -> WebDriver:
     # Check if running in cloud environment (GitHub Actions)
     import os
     is_cloud = os.getenv('GITHUB_ACTIONS') is not None
+    print(f"🌐 Environment: {'Cloud (GitHub Actions)' if is_cloud else 'Local'}")
     
     if is_cloud:
         # Cloud-friendly options (no user data directory)
