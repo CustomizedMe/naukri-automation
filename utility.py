@@ -162,7 +162,7 @@ def setup_driver() -> WebDriver:
                 print(f"🔍 Attempting to start Chrome (attempt {attempt + 1}/{max_retries})...")
                 
                 # Create service with better configuration
-    service = Service(ChromeDriverManager().install())
+                service = Service(ChromeDriverManager().install())
                 service.start()
                 
                 # Create driver with explicit service
