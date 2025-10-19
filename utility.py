@@ -466,8 +466,8 @@ def setup_driver() -> WebDriver:
             time.sleep(3)
         
         print("🚀 Driver setup completed successfully")
-    return driver
-
+        return driver
+        
     except Exception as e:
         print(f"❌ Setup failed: {e}")
         if 'driver' in locals() and driver:
@@ -1057,11 +1057,11 @@ def login_with_otp(driver: WebDriver, phone_number: str) -> None:
         verify_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Verify') or contains(text(), 'Login')]")
         verify_button.click()
         print("✅ OTP verified")
-    time.sleep(5)
+        time.sleep(5)
         
         # Navigate to profile page
-    driver.get("https://www.naukri.com/mnjuser/profile")
-    time.sleep(5)
+        driver.get("https://www.naukri.com/mnjuser/profile")
+        time.sleep(5)
         print("🎯 Navigated to profile page")
         
     except Exception as e:
