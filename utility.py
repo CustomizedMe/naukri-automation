@@ -162,7 +162,7 @@ def setup_driver() -> WebDriver:
                 print(f"🔍 Attempting to start Chrome (attempt {attempt + 1}/{max_retries})...")
                 
                 # Create service with better configuration
-                service = Service(ChromeDriverManager().install())
+    service = Service(ChromeDriverManager().install())
                 service.start()
                 
                 # Create driver with explicit service
@@ -367,7 +367,7 @@ def setup_driver() -> WebDriver:
                 except:
                     pass  # Continue if mouse simulation fails
                 
-                driver.get("https://www.naukri.com/")
+    driver.get("https://www.naukri.com/")
                 
                 # Simulate human-like scrolling behavior
                 try:
@@ -461,13 +461,13 @@ def setup_driver() -> WebDriver:
                 raise Exception("Login button not found and direct navigation failed")
         else:
             # Click the login button
-            login_button.click()
+    login_button.click()
             print("✅ Login button clicked successfully")
-            time.sleep(3)
+    time.sleep(3)
         
         print("🚀 Driver setup completed successfully")
-        return driver
-        
+    return driver
+
     except Exception as e:
         print(f"❌ Setup failed: {e}")
         if 'driver' in locals() and driver:
@@ -867,13 +867,88 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
             else:
                 error_found = True
         
-        # Check for CAPTCHA or additional verification
+        # Check for CAPTCHA or additional verification with comprehensive detection
         try:
-            captcha_elements = driver.find_elements(By.XPATH, "//div[contains(@class, 'captcha') or contains(@id, 'captcha')]")
-            if captcha_elements:
-                print("⚠️ CAPTCHA detected - manual intervention required")
-                error_found = True
-        except:
+            print("🔍 Checking for CAPTCHA and verification challenges...")
+            
+            # Multiple CAPTCHA detection patterns
+            captcha_selectors = [
+                "//div[contains(@class, 'captcha')]",
+                "//div[contains(@id, 'captcha')]",
+                "//img[contains(@src, 'captcha')]",
+                "//img[contains(@alt, 'captcha')]",
+                "//div[contains(@class, 'recaptcha')]",
+                "//div[contains(@id, 'recaptcha')]",
+                "//iframe[contains(@src, 'recaptcha')]",
+                "//div[contains(text(), 'captcha')]",
+                "//div[contains(text(), 'verification')]",
+                "//div[contains(text(), 'robot')]",
+                "//div[contains(text(), 'human')]",
+                "//div[contains(@class, 'challenge')]",
+                "//div[contains(@class, 'verification')]"
+            ]
+            
+            captcha_found = False
+            for selector in captcha_selectors:
+                try:
+                    elements = driver.find_elements(By.XPATH, selector)
+                    if elements:
+                        print(f"⚠️ CAPTCHA/Verification detected with selector: {selector}")
+                        captcha_found = True
+                        break
+                except:
+                    continue
+            
+            if captcha_found:
+                print("🚫 CAPTCHA detected - this requires manual intervention")
+                print("💡 Possible solutions:")
+                print("   1. Use a different login method (Google OAuth)")
+                print("   2. Try logging in manually first to establish session")
+                print("   3. Use a residential proxy or VPN")
+                print("   4. Wait and retry later (CAPTCHA may be temporary)")
+                
+                # Try to suggest switching to Google OAuth
+                print("🔄 Attempting to switch to Google OAuth login...")
+                try:
+                    # Look for Google login button
+                    google_login_selectors = [
+                        "//button[contains(text(), 'Google')]",
+                        "//a[contains(text(), 'Google')]",
+                        "//div[contains(@class, 'google')]",
+                        "//button[contains(@class, 'google')]",
+                        "//a[contains(@href, 'google')]"
+                    ]
+                    
+                    google_button_found = False
+                    for selector in google_login_selectors:
+                        try:
+                            google_button = driver.find_element(By.XPATH, selector)
+                            print(f"✅ Found Google login button: {selector}")
+                            google_button.click()
+                            print("🔄 Clicked Google login button")
+                            time.sleep(3)
+                            google_button_found = True
+                            break
+                        except:
+                            continue
+                    
+                    if google_button_found:
+                        print("🎯 Switched to Google OAuth - this may bypass CAPTCHA")
+                        # Let the Google login function handle the rest
+                        return
+                    else:
+                        print("❌ No Google login option found")
+                        
+                except Exception as google_error:
+                    print(f"⚠️ Failed to switch to Google OAuth: {google_error}")
+                
+                # Raise a specific CAPTCHA exception that can be caught by the main login function
+                raise Exception("CAPTCHA detected - manual intervention required")
+            else:
+                print("✅ No CAPTCHA detected")
+                
+        except Exception as captcha_error:
+            print(f"⚠️ Could not check for CAPTCHA: {captcha_error}")
             pass
         
         if error_found:
@@ -982,11 +1057,11 @@ def login_with_otp(driver: WebDriver, phone_number: str) -> None:
         verify_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Verify') or contains(text(), 'Login')]")
         verify_button.click()
         print("✅ OTP verified")
-        time.sleep(5)
+    time.sleep(5)
         
         # Navigate to profile page
-        driver.get("https://www.naukri.com/mnjuser/profile")
-        time.sleep(5)
+    driver.get("https://www.naukri.com/mnjuser/profile")
+    time.sleep(5)
         print("🎯 Navigated to profile page")
         
     except Exception as e:
@@ -1005,27 +1080,64 @@ def login(driver: WebDriver, login_method: str, **kwargs) -> None:
     """
     print(f"🔐 Starting login with method: {login_method}")
     
-    if login_method.lower() == 'google':
-        email = kwargs.get('email')
-        if not email:
-            raise ValueError("Email is required for Google login")
-        login_with_google(driver, email)
-        
-    elif login_method.lower() == 'email_password':
-        email = kwargs.get('email')
-        password = kwargs.get('password')
-        if not email or not password:
-            raise ValueError("Email and password are required for email/password login")
-        login_with_email_password(driver, email, password)
-        
-    elif login_method.lower() == 'otp':
-        phone_number = kwargs.get('phone_number')
-        if not phone_number:
-            raise ValueError("Phone number is required for OTP login")
-        login_with_otp(driver, phone_number)
-        
-    else:
-        raise ValueError(f"Unsupported login method: {login_method}. Supported methods: google, email_password, otp")
+    max_login_attempts = 2  # Try primary method, then fallback
+    
+    for attempt in range(max_login_attempts):
+        try:
+            if attempt == 0:
+                # Primary login method
+                if login_method.lower() == 'google':
+                    email = kwargs.get('email')
+                    if not email:
+                        raise ValueError("Email is required for Google login")
+                    login_with_google(driver, email)
+                    
+                elif login_method.lower() == 'email_password':
+                    email = kwargs.get('email')
+                    password = kwargs.get('password')
+                    if not email or not password:
+                        raise ValueError("Email and password are required for email/password login")
+                    login_with_email_password(driver, email, password)
+                    
+                elif login_method.lower() == 'otp':
+                    phone_number = kwargs.get('phone_number')
+                    if not phone_number:
+                        raise ValueError("Phone number is required for OTP login")
+                    login_with_otp(driver, phone_number)
+                    
+                else:
+                    raise ValueError(f"Unsupported login method: {login_method}. Supported methods: google, email_password, otp")
+            else:
+                # Fallback: Try Google OAuth if email/password fails due to CAPTCHA
+                if login_method.lower() == 'email_password' and kwargs.get('email'):
+                    print("🔄 Primary login failed, trying Google OAuth as fallback...")
+                    login_with_google(driver, kwargs.get('email'))
+                else:
+                    raise Exception("No fallback method available")
+            
+            # If we reach here, login was successful
+            print("✅ Login completed successfully")
+            return
+            
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "captcha" in error_msg or "verification" in error_msg:
+                print(f"⚠️ Login attempt {attempt + 1} failed due to CAPTCHA: {e}")
+                if attempt < max_login_attempts - 1:
+                    print("🔄 Trying fallback method...")
+                    time.sleep(3)  # Wait before retry
+                    continue
+                else:
+                    print("❌ All login attempts failed due to CAPTCHA")
+                    raise Exception("Login failed: CAPTCHA detected on all attempts. Please try manual login or use different credentials.")
+            else:
+                print(f"❌ Login attempt {attempt + 1} failed: {e}")
+                if attempt < max_login_attempts - 1:
+                    print("🔄 Retrying...")
+                    time.sleep(5)  # Wait before retry
+                    continue
+                else:
+                    raise e
 
 def refresh_profile(driver: WebDriver, resume_file_path: str) -> None:
     """
