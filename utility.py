@@ -367,7 +367,7 @@ def setup_driver() -> WebDriver:
                 except:
                     pass  # Continue if mouse simulation fails
                 
-    driver.get("https://www.naukri.com/")
+                driver.get("https://www.naukri.com/")
                 
                 # Simulate human-like scrolling behavior
                 try:
