@@ -461,9 +461,9 @@ def setup_driver() -> WebDriver:
                 raise Exception("Login button not found and direct navigation failed")
         else:
             # Click the login button
-    login_button.click()
+            login_button.click()
             print("✅ Login button clicked successfully")
-    time.sleep(3)
+            time.sleep(3)
         
         print("🚀 Driver setup completed successfully")
     return driver
