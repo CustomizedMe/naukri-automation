@@ -54,7 +54,7 @@ def setup_driver() -> WebDriver:
         chrome_options.add_argument("--disable-extensions")
         
         # Advanced stealth Chrome options to avoid detection
-        chrome_options.add_argument("--headless=new")  # Use new headless mode
+        # chrome_options.add_argument("--headless=new")  # Disable headless mode to avoid detection
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
@@ -65,7 +65,7 @@ def setup_driver() -> WebDriver:
         chrome_options.add_argument("--disable-web-security")
         chrome_options.add_argument("--allow-running-insecure-content")
         chrome_options.add_argument("--disable-features=VizDisplayCompositor")
-        chrome_options.add_argument("--remote-debugging-port=9222")
+        # chrome_options.add_argument("--remote-debugging-port=9222")  # Commented out to avoid port conflicts
         chrome_options.add_argument("--disable-background-timer-throttling")
         chrome_options.add_argument("--disable-backgrounding-occluded-windows")
         chrome_options.add_argument("--disable-renderer-backgrounding")
@@ -163,9 +163,8 @@ def setup_driver() -> WebDriver:
                 
                 # Create service with better configuration
                 service = Service(ChromeDriverManager().install())
-                service.start()
                 
-                # Create driver with explicit service
+                # Create driver with explicit service (don't start service manually)
                 driver = webdriver.Chrome(service=service, options=chrome_options)
                 
                 # Set timeouts for better stability
@@ -185,6 +184,11 @@ def setup_driver() -> WebDriver:
                     except:
                         pass
                     driver = None
+                if 'service' in locals():
+                    try:
+                        service.stop()
+                    except:
+                        pass
                 
                 if attempt < max_retries - 1:
                     print("🔄 Retrying with different configuration...")
@@ -202,11 +206,12 @@ def setup_driver() -> WebDriver:
             
             # Comprehensive stealth script
             stealth_script = """
-            // Remove webdriver property
-            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-            
-            // Override automation indicators
-            Object.defineProperty(navigator, 'webdriver', {get: () => false});
+            // Override automation indicators (fixed to avoid redefinition error)
+            try {
+                Object.defineProperty(navigator, 'webdriver', {get: () => false, configurable: true});
+            } catch(e) {
+                // Property already defined, skip
+            }
             Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
             Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
             Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})});
@@ -218,8 +223,11 @@ def setup_driver() -> WebDriver:
             }
             
             // Override automation flags
-            Object.defineProperty(navigator, 'automation', {get: () => false});
-            Object.defineProperty(navigator, 'webdriver', {get: () => false});
+            try {
+                Object.defineProperty(navigator, 'automation', {get: () => false, configurable: true});
+            } catch(e) {
+                // Property already defined, skip
+            }
             
             // Mock realistic plugins
             Object.defineProperty(navigator, 'plugins', {
@@ -604,6 +612,91 @@ def login_with_email_password(driver: WebDriver, email: str, password: str) -> N
     wait = WebDriverWait(driver, 15)
     
     try:
+        # Wait for login page to load
+        time.sleep(3)
+        
+        # Check if we're on OTP tab and switch to email/password tab
+        print("🔍 Checking which login tab is active...")
+        
+        # Look for OTP-related elements that indicate we're on OTP tab
+        otp_indicators = [
+            "//input[@type='tel' or @name='mobile' or contains(@placeholder, 'Mobile') or contains(@placeholder, 'Phone')]",
+            "//div[contains(text(), 'OTP')]",
+            "//button[contains(text(), 'Get OTP') or contains(text(), 'Send OTP')]",
+            "//div[contains(@class, 'otp') or contains(@id, 'otp')]"
+        ]
+        
+        is_otp_tab = False
+        for indicator in otp_indicators:
+            try:
+                elements = driver.find_elements(By.XPATH, indicator)
+                if elements and any(el.is_displayed() for el in elements):
+                    print("⚠️ OTP tab detected - switching to email/password tab...")
+                    is_otp_tab = True
+                    break
+            except:
+                continue
+        
+        # If on OTP tab, look for button/tab to switch to email/password
+        if is_otp_tab:
+            print("🔄 Looking for email/password tab switch button...")
+            # Comprehensive selectors for switching to email/password tab
+            switch_selectors = [
+                "//button[contains(text(), 'Login with Password') or contains(text(), 'Use Password')]",
+                "//a[contains(text(), 'Login with Password') or contains(text(), 'Use Password')]",
+                "//span[contains(text(), 'Login with Password') or contains(text(), 'Use Password')]",
+                "//button[contains(text(), 'Email') and not(contains(text(), 'OTP'))]",
+                "//a[contains(text(), 'Email') and not(contains(text(), 'OTP'))]",
+                "//div[contains(@class, 'tab') and contains(text(), 'Email')]",
+                "//div[contains(@class, 'tab') and contains(text(), 'Password')]",
+                "//button[contains(@class, 'password')]",
+                "//a[contains(@class, 'password')]",
+                "//div[@role='tab' and contains(text(), 'Email') or contains(text(), 'Password')]",
+                "//button[@role='tab' and contains(text(), 'Email') or contains(text(), 'Password')]",
+                # Naukri-specific patterns
+                "//div[contains(@class, 'emailLogin') or contains(@class, 'email-login')]",
+                "//button[contains(@class, 'emailLogin') or contains(@class, 'email-login')]"
+            ]
+            
+            switched = False
+            for selector in switch_selectors:
+                try:
+                    elements = driver.find_elements(By.XPATH, selector)
+                    for el in elements:
+                        if el.is_displayed() and el.is_enabled():
+                            print(f"✅ Found email/password switch button: {selector}")
+                            # Scroll into view if needed
+                            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)
+                            time.sleep(1)
+                            el.click()
+                            print("✅ Clicked email/password tab")
+                            time.sleep(3)  # Wait for tab switch
+                            switched = True
+                            break
+                    if switched:
+                        break
+                except Exception as e:
+                    continue
+            
+            if not switched:
+                print("⚠️ Could not find email/password tab switch button - proceeding anyway...")
+        
+        # Double-check: Verify we're NOT on OTP tab by checking for email input field
+        print("🔍 Verifying we're on email/password tab...")
+        email_field_found = False
+        for selector in ["//input[@name='email']", "//input[@type='text' and contains(@placeholder, 'Email')]", "//input[@id='email']"]:
+            try:
+                elements = driver.find_elements(By.XPATH, selector)
+                if elements and any(el.is_displayed() for el in elements):
+                    email_field_found = True
+                    print("✅ Email input field visible - on correct tab")
+                    break
+            except:
+                continue
+        
+        if not email_field_found:
+            print("⚠️ Email field not found - might still be on OTP tab")
+
         print("🔍 Looking for email input field...")
         # Find email input field with multiple possible selectors
         email_selectors = [

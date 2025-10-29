@@ -37,24 +37,35 @@ jobs:
         
     - name: Create environment file
       run: |
-        echo "LOGIN_METHOD=${{ secrets.LOGIN_METHOD }}" >> .env
-        echo "NAUKRI_EMAIL=${{ secrets.NAUKRI_EMAIL }}" >> .env
-        echo "NAUKRI_PASSWORD=${{ secrets.NAUKRI_PASSWORD }}" >> .env
-        echo "GOOGLE_EMAIL=${{ secrets.GOOGLE_EMAIL }}" >> .env
-        echo "PHONE_NUMBER=${{ secrets.PHONE_NUMBER }}" >> .env
+        # Create .env file with proper handling of secrets
+        {
+          echo "LOGIN_METHOD=${{ secrets.LOGIN_METHOD }}"
+          [ -n "${{ secrets.NAUKRI_EMAIL }}" ] && echo "NAUKRI_EMAIL=${{ secrets.NAUKRI_EMAIL }}"
+          [ -n "${{ secrets.NAUKRI_PASSWORD }}" ] && echo "NAUKRI_PASSWORD=${{ secrets.NAUKRI_PASSWORD }}"
+          [ -n "${{ secrets.GOOGLE_EMAIL }}" ] && echo "GOOGLE_EMAIL=${{ secrets.GOOGLE_EMAIL }}"
+          [ -n "${{ secrets.PHONE_NUMBER }}" ] && echo "PHONE_NUMBER=${{ secrets.PHONE_NUMBER }}"
+        } > .env
+        echo "✅ Environment file created"
+        echo "🔍 LOGIN_METHOD is set to: ${{ secrets.LOGIN_METHOD }}"
         
-    - name: Download resume file
+    - name: Copy resume file
       run: |
-        # Create resume directory
-        mkdir -p "/tmp/resume"
-        # Download resume from GitHub (you'll need to upload your resume to the repo)
-        # For now, we'll create a placeholder
-        echo "Resume file will be downloaded from repository"
+        # Copy resume from repository root (should be named resume.pdf)
+        if [ -f "resume.pdf" ]; then
+          echo "✅ Found resume.pdf in repository"
+          cp resume.pdf ./resume.pdf
+        else
+          echo "⚠️ Warning: resume.pdf not found in repository root"
+          echo "💡 Please upload your resume as resume.pdf in the repository root"
+        fi
         
     - name: Update resume path in main.py
       run: |
         # Update the resume path to point to the downloaded file
-        sed -i 's|RESUME_FILE_PATH = "/Users/mac/Documents/Job Material/PrakharBhatnagar_Resume.pdf"|RESUME_FILE_PATH = "/tmp/resume/resume.pdf"|' main.py
+        # Handle both potential paths
+        sed -i 's|RESUME_FILE_PATH = "/Users/mac/Documents/Job Material/Prakhar_PM_resume.pdf"|RESUME_FILE_PATH = "./resume.pdf"|' main.py
+        sed -i 's|RESUME_FILE_PATH = "/Users/mac/Documents/Job Material/PrakharBhatnagar_Resume.pdf"|RESUME_FILE_PATH = "./resume.pdf"|' main.py
+        echo "✅ Resume path updated in main.py"
         
     - name: Run Naukri automation
       run: |
