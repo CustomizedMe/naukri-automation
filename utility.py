@@ -43,6 +43,9 @@ def setup_driver() -> WebDriver:
     import tempfile
     
     try:
+        # Detect if we're running in CI/GitHub Actions
+        is_ci = os.getenv('CI') == 'true' or os.getenv('GITHUB_ACTIONS') == 'true'
+        
         # Chrome options for better compatibility
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
@@ -54,7 +57,17 @@ def setup_driver() -> WebDriver:
         chrome_options.add_argument("--disable-extensions")
         
         # Advanced stealth Chrome options to avoid detection
-        # chrome_options.add_argument("--headless=new")  # Disable headless mode to avoid detection
+        # Enable headless mode ONLY in CI environments (required for GitHub Actions)
+        if is_ci:
+            print("🤖 Detected CI environment - enabling headless mode")
+            chrome_options.add_argument("--headless=new")
+            # Additional headless-specific options for CI
+            chrome_options.add_argument("--disable-software-rasterizer")
+            chrome_options.add_argument("--disable-setuid-sandbox")
+            chrome_options.add_argument("--remote-debugging-port=0")  # Disable remote debugging in headless
+        else:
+            print("💻 Running in local environment - using normal Chrome mode")
+        
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
@@ -150,6 +163,21 @@ def setup_driver() -> WebDriver:
         chrome_options.add_argument("--sec-fetch-site=none")
         chrome_options.add_argument("--sec-fetch-user=?1")
         chrome_options.add_argument("--upgrade-insecure-requests=1")
+        
+        # In CI environments, explicitly set Chrome binary path if available
+        if is_ci:
+            # Try common Chrome installation paths in CI
+            chrome_binary_paths = [
+                "/usr/bin/google-chrome",
+                "/usr/bin/google-chrome-stable",
+                "/usr/bin/chromium",
+                "/usr/bin/chromium-browser"
+            ]
+            for chrome_path in chrome_binary_paths:
+                if os.path.exists(chrome_path):
+                    chrome_options.binary_location = chrome_path
+                    print(f"📍 Using Chrome binary: {chrome_path}")
+                    break
         
         print("🌐 Using cloud-optimized Chrome configuration")
         
